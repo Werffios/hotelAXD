@@ -8,6 +8,7 @@ use App\Models\Room;
 use App\Models\Season;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -42,16 +43,8 @@ class RoomResource extends Resource
                     ->required()
                     ->numeric()
                     ->minValue(1)
-                    ->maxValue(100)
+                    ->maxValue(20)
                     ->placeholder('Ingrese la ocupación máxima'),
-                // Sección de precios por temporada
-                Forms\Components\Section::make('Precios por temporada')
-                    ->schema([
-                        Forms\Components\Placeholder::make('price_info')
-                            ->label('Información')
-                            ->content('Los precios por temporada se establecen en la sección de precios')
-                    ])
-                    ->collapsed(),
             ]);
     }
 
@@ -59,7 +52,6 @@ class RoomResource extends Resource
     {
         return $table
             ->columns([
-
                 Tables\Columns\TextColumn::make('roomSite.name')
                     ->label('Sitio de Habitación')
                     ->searchable(),
@@ -69,22 +61,6 @@ class RoomResource extends Resource
                 Tables\Columns\TextColumn::make('roomType.name')
                     ->label('Tipo de Habitación')
                     ->searchable(),
-                // Columna para ver disponibilidad
-                Tables\Columns\TextColumn::make('availability')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn (Room $record): string =>
-                        $record->bookings()
-                            ->whereIn('status', ['pending', 'confirmed'])
-                            ->where('check_out_date', '>=', now())
-                            ->exists() ? 'danger' : 'success'
-                    )
-                    ->formatStateUsing(fn (Room $record): string =>
-                        $record->bookings()
-                            ->whereIn('status', ['pending', 'confirmed'])
-                            ->where('check_out_date', '>=', now())
-                            ->exists() ? 'Ocupada' : 'Disponible'
-                    ),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('roomSite')
@@ -97,7 +73,6 @@ class RoomResource extends Resource
                     ->label('Tipo de Habitación')
                     ->searchable()
                     ->preload(),
-                // Nuevo filtro para fechas de disponibilidad
                 Tables\Filters\Filter::make('available_dates')
                     ->form([
                         Forms\Components\DatePicker::make('check_in_date')
@@ -142,7 +117,6 @@ class RoomResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                // Nueva acción para crear reserva
                 Tables\Actions\Action::make('reserve')
                     ->label('Reservar')
                     ->icon('heroicon-o-calendar')
@@ -159,10 +133,8 @@ class RoomResource extends Resource
                             ->afterOrEqual('check_in_date'),
                     ])
                     ->action(function (Room $record, array $data): void {
-                        // Verificar disponibilidad
                         if (!$record->isAvailable($data['check_in_date'], $data['check_out_date'])) {
-                            // Mostrar mensaje de error si no está disponible
-                            Forms\Notification::make()
+                            Notification::make()
                                 ->title('La habitación no está disponible en estas fechas')
                                 ->danger()
                                 ->send();
@@ -170,12 +142,10 @@ class RoomResource extends Resource
                             return;
                         }
 
-                        // Calcular precio total
                         $totalPrice = $record->getPriceForDates($data['check_in_date'], $data['check_out_date']);
 
-                        // Si no hay precio configurado para estas fechas
                         if ($totalPrice <= 0) {
-                            Forms\Notification::make()
+                            Notification::make()
                                 ->title('No hay precios configurados para estas fechas')
                                 ->warning()
                                 ->send();
@@ -183,7 +153,6 @@ class RoomResource extends Resource
                             return;
                         }
 
-                        // Crear la reserva
                         $record->bookings()->create([
                             'user_id' => auth()->id(),
                             'check_in_date' => $data['check_in_date'],
@@ -192,7 +161,7 @@ class RoomResource extends Resource
                             'status' => 'confirmed',
                         ]);
 
-                        Forms\Notification::make()
+                        Notification::make()
                             ->title('Reserva creada correctamente')
                             ->success()
                             ->send();
