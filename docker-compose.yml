@@ -1,0 +1,19 @@
+networks:
+    myred:
+        external: true
+services:
+    web-service:
+        image: academix
+        container_name: web-service
+        build: .
+        restart: always  # run as a service
+        networks:
+            myred:
+                ipv4_address: 192.168.10.200
+        volumes:
+            - ./storage:/app/storage
+            - ./.env:/app/.env
+
+volumes:
+    storage:
+        driver: local
