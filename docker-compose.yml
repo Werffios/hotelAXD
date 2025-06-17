@@ -1,9 +1,9 @@
 networks:
-    myred:
+    net:
         external: true
 services:
     web-service:
-        image: academix
+        image: hotelaxd
         container_name: web-service
         build: .
         restart: always  # run as a service
