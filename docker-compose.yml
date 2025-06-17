@@ -2,7 +2,7 @@ networks:
     net:
         external: true
 services:
-    web-service:
+    web-service-hotelaxd:
         image: hotelaxd
         container_name: hotelaxd
         build: .
