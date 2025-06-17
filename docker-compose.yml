@@ -4,11 +4,11 @@ networks:
 services:
     web-service:
         image: hotelaxd
-        container_name: web-service
+        container_name: hotelaxd
         build: .
         restart: always  # run as a service
         networks:
-            myred:
+            net:
                 ipv4_address: 192.168.10.200
         volumes:
             - ./storage:/app/storage
