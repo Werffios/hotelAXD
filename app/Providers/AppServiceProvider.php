@@ -31,10 +31,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
-        Commands\SetupCommand::prohibit($this->app->isProduction());
-        Commands\InstallCommand::prohibit($this->app->isProduction());
-        Commands\GenerateCommand::prohibit($this->app->isProduction());
-        Commands\PublishCommand::prohibit($this->app->isProduction());
+        //
     }
 }
