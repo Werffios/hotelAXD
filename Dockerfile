@@ -51,8 +51,4 @@ RUN php artisan storage:link
 
 RUN php artisan octane:install --server="swoole"
 
-# Copy Supervisor configuration
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-CMD ["/usr/bin/supervisord"]
 EXPOSE 8000
